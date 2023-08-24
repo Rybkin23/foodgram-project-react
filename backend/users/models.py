@@ -1,9 +1,10 @@
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.validators import RegexValidator
 from django.db import models
 
 
 class User(AbstractUser):
+    """Пользователь"""
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
@@ -17,10 +18,11 @@ class User(AbstractUser):
     username = models.CharField(
         verbose_name='Логин',
         help_text='Введите логин',
-        max_length=150,  # Добавить проверку ^[\w.@+-]+\z
+        max_length=150,
         unique=True,
-        validators=(UnicodeUsernameValidator(),)
-    )
+        validators=[RegexValidator(
+            regex='^[\w.@+-]+\z',
+            message='Введите допустимое значение',)])
 
     first_name = models.CharField(
         verbose_name='Имя',

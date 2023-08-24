@@ -117,7 +117,12 @@ DJOSER = {
         'current_user': 'users.serializers.CustomUserSerializer',
         'user': 'users.serializers.CustomUserSerializer',
     },
+    'PERMISSIONS': {
+#        'user_list': 'rest_framework.permissions.AllowAny',
+    },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #SIMPLE_JWT = {
 #    'ACCESS_TOKEN_LIFETIME': timedelta(days=100),
