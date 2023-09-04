@@ -19,6 +19,16 @@ class Tag(models.Model):
             regex='^[-a-zA-Z0-9_]+$',
             message='Введите допустимое значение',)])
 
+<<<<<<< HEAD
+=======
+    class Meta:
+        verbose_name_plural = 'Тэг'
+        verbose_name = 'Тэги'
+
+    def __str__(self):
+        return self.name
+
+>>>>>>> 87ae675 (Закончил тэги)
 
 class Ingredient(models.Model):
     """Ингредиенты"""
@@ -31,11 +41,21 @@ class Ingredient(models.Model):
         max_length=200,
         blank=False)
 
+<<<<<<< HEAD
+=======
+    class Meta:
+        verbose_name_plural = 'Ингредиент'
+        verbose_name = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
+
+>>>>>>> 87ae675 (Закончил тэги)
 
 class Recipe(models.Model):
     """Рецепты"""
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='recipes')
+        User, on_delete=models.CASCADE, related_name='recipe')
     name = models.CharField(
         verbose_name='Название рецепта',
         max_length=200,
@@ -48,10 +68,30 @@ class Recipe(models.Model):
     text = models.TextField(null=True,)
     cooking_time = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(1)])
-    tags = models.ForeignKey(
-        Tag, on_delete=models.CASCADE, null=True, related_name='tags')
+    tags = models.ManyToManyField(Tag, related_name='recipes')
     ingredients = models.ForeignKey(
+<<<<<<< HEAD
         Ingredient, on_delete=models.CASCADE, null=True, related_name='Ingredients')
+=======
+        Ingredient, on_delete=models.CASCADE, null=True)
+
+    class Meta:
+        ordering = ('-id',)
+        verbose_name_plural = 'Рецепт'
+        verbose_name = 'Рецепты'
+
+    def __str__(self):
+        return self.name
+>>>>>>> 87ae675 (Закончил тэги)
+
+
+class RecipeIngredient(models.Model):
+    """Добавление количества для ингредиента"""
+    amount = models.FloatField()
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               null=True)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
+                                   null=True, related_name='recipes')
 
 
 class ShoppingList(models.Model):
@@ -59,15 +99,23 @@ class ShoppingList(models.Model):
     buyer = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='buyer')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipes_list')
+        Recipe, on_delete=models.CASCADE, related_name='shoplist')
+
+    class Meta:
+        verbose_name_plural = 'Список покупок'
+        verbose_name = 'Списки покупок'
 
 
 class Favourite(models.Model):
     """Избранное"""
     fan = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='fan')
+        User, on_delete=models.CASCADE, related_name='favourite')
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='fan_recipes')
+
+    class Meta:
+        verbose_name_plural = 'Избранное'
+        verbose_name = 'Избранные'
 
 
 class Follow(models.Model):  # page, limit, recipes_limit
