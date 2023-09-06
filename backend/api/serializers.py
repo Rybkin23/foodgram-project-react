@@ -1,12 +1,14 @@
 import base64
-#import webcolors
+from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
+from django.core.validators import MinValueValidator
 from rest_framework import serializers
+from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import SlugRelatedField
 
 from users.models import User
 from users.serializers import CustomUserSerializer
-from recipes.models import Tag, Ingredient, Recipe, ShoppingList, Favourite, Follow
+from recipes.models import Tag, Ingredient, RecipeIngredient, Recipe, ShoppingList, Favourite, Follow
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,21 +18,24 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = '__all__'
+
+
+class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+    id = IntegerField(write_only=True)
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -43,6 +48,15 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
+    author = CustomUserSerializer(read_only=True)
+    image = Base64ImageField()
+    cooking_time = serializers.IntegerField(
+        validators=(MinValueValidator(
+            1, message='Проверьте время приготовления.'),))
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(), many=True)
+    ingredients = RecipeIngredientWriteSerializer(many=True)
+
     class Meta:
         model = Recipe
         fields = '__all__'
@@ -63,13 +77,4 @@ class FavouriteSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
-        fields = '__all__'
-
-
-
-
-
-class IngredientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ingredient
         fields = '__all__'

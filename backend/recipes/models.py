@@ -46,6 +46,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name_plural = 'Ингредиент'
         verbose_name = 'Ингредиенты'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -55,7 +56,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Рецепты"""
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='recipe')
+        User, on_delete=models.CASCADE, related_name='recipes')
     name = models.CharField(
         verbose_name='Название рецепта',
         max_length=200,
@@ -65,15 +66,21 @@ class Recipe(models.Model):
         upload_to='recipes/',
         null=True,
         blank=False)
-    text = models.TextField(null=True,)
-    cooking_time = models.PositiveIntegerField(
-        default=0, validators=[MinValueValidator(1)])
+    text = models.TextField(verbose_name='Описание рецепта', null=True)
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления, м', default=0,
+        validators=[MinValueValidator(1)])
     tags = models.ManyToManyField(Tag, related_name='recipes')
+<<<<<<< HEAD
     ingredients = models.ForeignKey(
 <<<<<<< HEAD
         Ingredient, on_delete=models.CASCADE, null=True, related_name='Ingredients')
 =======
         Ingredient, on_delete=models.CASCADE, null=True)
+=======
+    ingredients = models.ManyToManyField(
+        Ingredient, through='RecipeIngredient')
+>>>>>>> f4dd0b4 (переписал некоторые модели)
 
     class Meta:
         ordering = ('-id',)
@@ -96,44 +103,44 @@ class RecipeIngredient(models.Model):
 
 class ShoppingList(models.Model):
     """Список покупок"""
-    buyer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='buyer')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='shoplist')
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='shoplist')
 
     class Meta:
         verbose_name_plural = 'Список покупок'
         verbose_name = 'Списки покупок'
+        unique_together = ('user', 'recipe')
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'
 
 
 class Favourite(models.Model):
     """Избранное"""
-    fan = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='favourite')
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='fan_recipes')
-
-    class Meta:
-        verbose_name_plural = 'Избранное'
-        verbose_name = 'Избранные'
-
-
-class Follow(models.Model):  # page, limit, recipes_limit
-    """Подписка"""
     user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписчик'
-    )
-    following = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Автор'
-    )
+        User, on_delete=models.CASCADE, related_name='favourites')
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='favourites')
 
     class Meta:
-        unique_together = ('user', 'following')
+        verbose_name_plural = 'Избранный рецепт'
+        verbose_name = 'Избранные рецепты'
+        unique_together = ('user', 'recipe')
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'
+
+
+class Follow(models.Model):
+    """Подписка"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='follower', verbose_name='Подписчик')
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='following', verbose_name='Автор')
+
+    class Meta:
+        unique_together = ('user', 'author')
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
