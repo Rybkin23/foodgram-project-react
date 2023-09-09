@@ -7,6 +7,7 @@ from users.models import User
 class Tag(models.Model):
     """Теги"""
     name = models.CharField(
+<<<<<<< HEAD
         verbose_name='Название тэга',
         max_length=200,
         null=True,
@@ -15,6 +16,16 @@ class Tag(models.Model):
         max_length=7, default="#ffffff", null=True, blank=True)
     slug = models.CharField(
         max_length=200, null=True, blank=True,
+=======
+        verbose_name='Название', max_length=200, null=True, blank=False,
+        unique=True)
+    color = models.CharField(
+        max_length=7, default="#ffffff", null=True,
+        blank=True, unique=True, verbose_name='Цвет')
+    slug = models.SlugField(
+        max_length=200, null=True, blank=True,
+        unique=True, verbose_name='Слаг',
+>>>>>>> 1688454 (Закончил админку, но есть один косяк)
         validators=[RegexValidator(
             regex='^[-a-zA-Z0-9_]+$',
             message='Введите допустимое значение',)])
@@ -46,7 +57,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name_plural = 'Ингредиент'
         verbose_name = 'Ингредиенты'
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -56,7 +67,8 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Рецепты"""
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='recipes')
+        User, on_delete=models.CASCADE,
+        related_name='recipes', verbose_name='Автор')
     name = models.CharField(
         verbose_name='Название рецепта',
         max_length=200,
@@ -65,11 +77,12 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/',
         null=True,
-        blank=False)
+        blank=False, verbose_name='Изображение')
     text = models.TextField(verbose_name='Описание рецепта', null=True)
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, м', default=0,
         validators=[MinValueValidator(1)])
+<<<<<<< HEAD
     tags = models.ManyToManyField(Tag, related_name='recipes')
 <<<<<<< HEAD
     ingredients = models.ForeignKey(
@@ -78,6 +91,10 @@ class Recipe(models.Model):
 =======
         Ingredient, on_delete=models.CASCADE, null=True)
 =======
+=======
+    tags = models.ManyToManyField(
+        Tag, related_name='recipes', through='RecipeTag', verbose_name='Тэг')
+>>>>>>> 1688454 (Закончил админку, но есть один косяк)
     ingredients = models.ManyToManyField(
         Ingredient, through='RecipeIngredient')
 >>>>>>> f4dd0b4 (переписал некоторые модели)
@@ -91,14 +108,36 @@ class Recipe(models.Model):
         return self.name
 >>>>>>> 87ae675 (Закончил тэги)
 
+    def admin_tag(self):
+        return ', '.join([tag.name for tag in self.tags.all()])
+    admin_tag.short_description = 'Тэг'
+
+
+class RecipeTag(models.Model):
+    """Модель связи добавления и контроля тегов"""
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, verbose_name='Тег')
+
+    class Meta:
+        unique_together = ('tag', 'recipe')
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги рецепта'
+
 
 class RecipeIngredient(models.Model):
     """Добавление количества для ингредиента"""
-    amount = models.FloatField()
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
+                                   null=True, related_name='recipes', verbose_name='Ингредиент')
+    amount = models.FloatField(validators=[MinValueValidator(1)], verbose_name='Количество')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                null=True)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                   null=True, related_name='recipes')
+
+    def measurement_unit(self):
+        return self.ingredient.measurement_unit
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class ShoppingList(models.Model):

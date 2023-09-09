@@ -94,7 +94,15 @@ USE_L10N = True
 
 USE_TZ = True
 
+<<<<<<< HEAD
 STATIC_URL = '/static/'
+=======
+STATIC_URL = '/backend_static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / '/media/'
+>>>>>>> 1688454 (Закончил админку, но есть один косяк)
 
 EMPTY_VALUE_DISPLAY = '-пусто-'
 

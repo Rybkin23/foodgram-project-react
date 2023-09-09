@@ -12,8 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
-from api.serializers import (IngredientSerializer, TagSerializer,
-                             RecipeReadSerializer, RecipeWriteSerializer,
+from api.serializers import (IngredientSerializer, TagSerializer, RecipeSerializer,
+                             #RecipeReadSerializer, RecipeWriteSerializer,
                              ShoppingListSerializer, FavouriteSerializer,
                              FollowSerializer, UserSerializer)
 
@@ -30,7 +30,7 @@ class UsersViewSet(ModelViewSet):
     permission_classes = (AdminEditUsersPermission,)
 
     @action(
-        methods=['GET', 'PATCH'], detail=False, url_path='me',
+        methods=('GET', 'PATCH'), detail=False, url_path='me',
         permission_classes=(permissions.IsAuthenticated,)
     )
     def get_update_me(self, request):
@@ -65,10 +65,10 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAuthorOrReadOnly,)
 
-    if action in ['list', 'retrieve']:
-        serializer_class = RecipeReadSerializer
+    if action in ('list', 'retrieve'):
+        serializer_class = RecipeSerializer
     else:
-        serializer_class = RecipeWriteSerializer
+        serializer_class = RecipeSerializer
 
     @action(detail=True, methods=['get'])
     def is_favorited(self, request, pk=None):

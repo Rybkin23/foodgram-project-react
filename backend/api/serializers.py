@@ -30,39 +30,42 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    id = IntegerField(write_only=True)
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    ingredient = IngredientSerializer(read_only=True)
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount')
+        fields = ('ingredient', 'amount')
 
 
-class RecipeReadSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+class RecipeSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    ingredients = RecipeIngredientSerializer(many=True)
     tags = TagSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
 
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        return user.is_authenticated and obj.favorites.filter(user=user).exists()
 
-class RecipeWriteSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
-    image = Base64ImageField()
-    cooking_time = serializers.IntegerField(
-        validators=(MinValueValidator(
-            1, message='Проверьте время приготовления.'),))
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True)
-    ingredients = RecipeIngredientWriteSerializer(many=True)
-
-    class Meta:
-        model = Recipe
-        fields = '__all__'
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+        return user.is_authenticated and obj.shoplist.filter(user=user).exists()
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
+    recipe = RecipeSerializer(read_only=True)
+
     class Meta:
         model = ShoppingList
         fields = '__all__'
