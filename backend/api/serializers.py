@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    queryset=Tag.objects.all()
     class Meta:
         model = Tag
         fields = '__all__'
@@ -39,12 +40,13 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('ingredient', 'amount')
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
+class RecipeWriteSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(many=True)
+    image = Base64ImageField()
+    cooking_time = serializers.IntegerField(
+        validators=(MinValueValidator(
+            1, message='Проверьте время приготовления.'),))
     tags = TagSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -65,7 +67,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    recipe = RecipeSerializer(read_only=True)
+    recipe = RecipeWriteSerializer(read_only=True)
 
     class Meta:
         model = ShoppingList
