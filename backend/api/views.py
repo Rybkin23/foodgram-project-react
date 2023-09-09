@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from django.shortcuts import render
-
-# Create your views here.
-=======
 from users.models import User
 from recipes.models import Tag, Ingredient, Recipe, ShoppingList, Favourite, Follow
 from users.permissions import IsAuthorOrReadOnly, AdminEditUsersPermission, AdminOrReadOnly, IsAdminOwnerOrReadOnly
@@ -99,4 +94,3 @@ class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FollowSerializer
->>>>>>> 87ae675 (Закончил тэги)

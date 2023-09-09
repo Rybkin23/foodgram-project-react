@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.utils import timezone
 
 from users.models import User
 
@@ -7,16 +8,6 @@ from users.models import User
 class Tag(models.Model):
     """Теги"""
     name = models.CharField(
-<<<<<<< HEAD
-        verbose_name='Название тэга',
-        max_length=200,
-        null=True,
-        blank=False)
-    color = models.CharField(
-        max_length=7, default="#ffffff", null=True, blank=True)
-    slug = models.CharField(
-        max_length=200, null=True, blank=True,
-=======
         verbose_name='Название', max_length=200, null=True, blank=False,
         unique=True)
     color = models.CharField(
@@ -25,13 +16,10 @@ class Tag(models.Model):
     slug = models.SlugField(
         max_length=200, null=True, blank=True,
         unique=True, verbose_name='Слаг',
->>>>>>> 1688454 (Закончил админку, но есть один косяк)
         validators=[RegexValidator(
             regex='^[-a-zA-Z0-9_]+$',
             message='Введите допустимое значение',)])
 
-<<<<<<< HEAD
-=======
     class Meta:
         verbose_name_plural = 'Тэг'
         verbose_name = 'Тэги'
@@ -39,7 +27,6 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
->>>>>>> 87ae675 (Закончил тэги)
 
 class Ingredient(models.Model):
     """Ингредиенты"""
@@ -52,8 +39,6 @@ class Ingredient(models.Model):
         max_length=200,
         blank=False)
 
-<<<<<<< HEAD
-=======
     class Meta:
         verbose_name_plural = 'Ингредиент'
         verbose_name = 'Ингредиенты'
@@ -62,7 +47,6 @@ class Ingredient(models.Model):
     def __str__(self):
         return self.name
 
->>>>>>> 87ae675 (Закончил тэги)
 
 class Recipe(models.Model):
     """Рецепты"""
@@ -75,29 +59,17 @@ class Recipe(models.Model):
         null=True,
         blank=False)
     image = models.ImageField(
-        upload_to='recipes/',
+        upload_to='media/',
         null=True,
         blank=False, verbose_name='Изображение')
     text = models.TextField(verbose_name='Описание рецепта', null=True)
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, м', default=0,
         validators=[MinValueValidator(1)])
-<<<<<<< HEAD
-    tags = models.ManyToManyField(Tag, related_name='recipes')
-<<<<<<< HEAD
-    ingredients = models.ForeignKey(
-<<<<<<< HEAD
-        Ingredient, on_delete=models.CASCADE, null=True, related_name='Ingredients')
-=======
-        Ingredient, on_delete=models.CASCADE, null=True)
-=======
-=======
     tags = models.ManyToManyField(
         Tag, related_name='recipes', through='RecipeTag', verbose_name='Тэг')
->>>>>>> 1688454 (Закончил админку, но есть один косяк)
     ingredients = models.ManyToManyField(
         Ingredient, through='RecipeIngredient')
->>>>>>> f4dd0b4 (переписал некоторые модели)
 
     class Meta:
         ordering = ('-id',)
@@ -106,7 +78,6 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
->>>>>>> 87ae675 (Закончил тэги)
 
     def admin_tag(self):
         return ', '.join([tag.name for tag in self.tags.all()])

@@ -32,6 +32,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer(read_only=True)
+    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
