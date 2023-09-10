@@ -19,7 +19,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    queryset=Tag.objects.all()
+    queryset = Tag.objects.all()
+
     class Meta:
         model = Tag
         fields = '__all__'
@@ -47,23 +48,30 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     cooking_time = serializers.IntegerField(
         validators=(MinValueValidator(
             1, message='Проверьте время приготовления.'),))
-    tags = TagSerializer(many=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'is_in_shopping_cart', 'name', 'image', 'text',
+        fields = ('id', 'tags', 'author', 'ingredients', 'name', 'image', 'text',
                   'cooking_time')
 
-    def get_is_favorited(self, obj):
-        user = self.context['request'].user
-        return user.is_authenticated and obj.favorites.filter(user=user).exists()
+    def create(self, validated_data):
+        author = self.context.get('request').user
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        recipe.tags.set(tags)
 
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
-        return user.is_authenticated and obj.shoplist.filter(user=user).exists()
+        return recipe
+
+
+class RecipeReadSerializer(serializers.ModelSerializer):
+    author = CustomUserSerializer(read_only=True)
+    tags = TagSerializer(many=True)
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):

@@ -61,7 +61,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
 
     if action in ('list', 'retrieve'):
-        serializer_class = RecipeReadSerializer
+        serializer_class = RecipeWriteSerializer
     else:
         serializer_class = RecipeWriteSerializer
 
