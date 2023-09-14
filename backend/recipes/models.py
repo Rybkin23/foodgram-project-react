@@ -63,13 +63,13 @@ class Recipe(models.Model):
         null=True,
         blank=False, verbose_name='Изображение')
     text = models.TextField(verbose_name='Описание рецепта', null=True)
-    cooking_time = models.PositiveSmallIntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления, м', default=0,
         validators=[MinValueValidator(1)])
     tags = models.ManyToManyField(
         Tag, related_name='recipes', through='RecipeTag', verbose_name='Тэг')
     ingredients = models.ManyToManyField(
-        Ingredient, through='RecipeIngredient')
+        Ingredient, related_name='recipes', through='RecipeIngredient')
 
     class Meta:
         ordering = ('-id',)
@@ -97,18 +97,17 @@ class RecipeTag(models.Model):
 
 class RecipeIngredient(models.Model):
     """Добавление количества для ингредиента"""
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                   null=True, related_name='recipes', verbose_name='Ингредиент')
-    amount = models.FloatField(validators=[MinValueValidator(1)], verbose_name='Количество')
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               null=True)
-
-    def measurement_unit(self):
-        return self.ingredient.measurement_unit
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='recipeingredient', null=True, verbose_name='Ингредиент')
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name='Количество')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipeingredient', null=True)
 
     class Meta:
+        unique_together = ('ingredient', 'recipe')
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return f'{str(self.ingredient)} in {str(self.recipe)}-{self.amount}'
 
 
 class ShoppingList(models.Model):

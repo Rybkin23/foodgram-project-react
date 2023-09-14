@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from users.models import User
 from recipes.models import Tag, Ingredient, Recipe, ShoppingList, Favourite, Follow
 from users.permissions import IsAuthorOrReadOnly, AdminEditUsersPermission, AdminOrReadOnly, IsAdminOwnerOrReadOnly
@@ -8,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
 from api.serializers import (IngredientSerializer, TagSerializer, RecipeWriteSerializer,
-                             #RecipeReadSerializer, 
+                             RecipeReadSerializer, 
                              ShoppingListSerializer, FavouriteSerializer,
                              FollowSerializer, UserSerializer)
 
@@ -45,6 +46,7 @@ class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
 
 
@@ -59,9 +61,11 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = PageNumberPagination
     permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^ingredients__name',)
 
     if action in ('list', 'retrieve'):
-        serializer_class = RecipeWriteSerializer
+        serializer_class = RecipeReadSerializer
     else:
         serializer_class = RecipeWriteSerializer
 

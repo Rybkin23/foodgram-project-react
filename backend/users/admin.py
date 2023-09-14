@@ -18,8 +18,9 @@ class RecipeIngredientInLine(admin.TabularInline):
     readonly_fields = ('measurement_unit',)
 
     def measurement_unit(self, obj):
-        return obj.Ingredient.measurement_unit
+        return obj.ingredient.measurement_unit
     measurement_unit.short_description = 'Единица измерения'
+
 
 class RecipeTagInLine(admin.TabularInline):
     model = RecipeTag
