@@ -1,4 +1,3 @@
-#import base64
 from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
@@ -8,14 +7,8 @@ from rest_framework.relations import SlugRelatedField
 
 from users.models import User
 from users.serializers import CustomUserSerializer
-from recipes.models import Tag, Ingredient, RecipeIngredient, Recipe, ShoppingList, Favourite, Follow
-
-
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = '__all__'
+from recipes.models import (Tag, Ingredient, RecipeIngredient,
+                            Recipe, ShoppingList, Favourite, Follow)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -43,24 +36,24 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(many=True, source='recipeingredient')
+    author = CustomUserSerializer(read_only=True)
+    ingredients = RecipeIngredientSerializer(
+        many=True, source='recipeingredient')
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
         validators=(MinValueValidator(
             1, message='Проверьте время приготовления.'),))
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(), many=True)
 
     class Meta:
         model = Recipe
         fields = '__all__'
 
     def create(self, validated_data):
-        # print('validated_data=', validated_data)
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('recipeingredient')
-        # print('validated_data=', validated_data, 'ingredients=', ingredients)
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags)
         for ingredient in ingredients:
@@ -72,7 +65,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)    
+    author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
     tags = TagSerializer(many=True)

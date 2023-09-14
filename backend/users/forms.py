@@ -8,7 +8,7 @@ class RecipeInLineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
         if any(self.errors):
-            return        
+            return
         has_ingredient = any(
             cleaned_data and not cleaned_data.get('DELETE', False)
             for cleaned_data in self.cleaned_data

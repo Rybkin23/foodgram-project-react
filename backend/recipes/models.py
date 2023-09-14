@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.utils import timezone
 
 from users.models import User
 
@@ -97,9 +96,14 @@ class RecipeTag(models.Model):
 
 class RecipeIngredient(models.Model):
     """Добавление количества для ингредиента"""
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='recipeingredient', null=True, verbose_name='Ингредиент')
-    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name='Количество')
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipeingredient', null=True)
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.CASCADE, related_name='recipeingredient',
+        null=True, verbose_name='Ингредиент')
+    amount = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)], verbose_name='Количество')
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE,
+        related_name='recipeingredient', null=True)
 
     class Meta:
         unique_together = ('ingredient', 'recipe')

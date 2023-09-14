@@ -1,17 +1,20 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from users.models import User
-from recipes.models import Tag, Ingredient, Recipe, ShoppingList, Favourite, Follow
-from users.permissions import IsAuthorOrReadOnly, AdminEditUsersPermission, AdminOrReadOnly, IsAdminOwnerOrReadOnly
+from recipes.models import (Tag, Ingredient, Recipe,
+                            ShoppingList, Favourite, Follow)
+from users.permissions import (IsAuthorOrReadOnly, AdminEditUsersPermission,
+                               AdminOrReadOnly, IsAdminOwnerOrReadOnly)
 from rest_framework import (filters, mixins, permissions, status,
                             viewsets)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
-from api.serializers import (IngredientSerializer, TagSerializer, RecipeWriteSerializer,
-                             RecipeReadSerializer, 
+from api.serializers import (IngredientSerializer, TagSerializer,
+                             RecipeWriteSerializer, RecipeReadSerializer,
                              ShoppingListSerializer, FavouriteSerializer,
-                             FollowSerializer, UserSerializer)
+                             FollowSerializer)
+from users.serializers import CustomUserSerializer
 
 
 class ListRetrieveViewSet(mixins.ListModelMixin,
@@ -21,7 +24,7 @@ class ListRetrieveViewSet(mixins.ListModelMixin,
 
 
 class UsersViewSet(ModelViewSet):
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     queryset = User.objects.order_by('pk')
     permission_classes = (AdminEditUsersPermission,)
 
@@ -59,7 +62,6 @@ class TagViewSet(ModelViewSet):
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    pagination_class = PageNumberPagination
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^ingredients__name',)
@@ -78,7 +80,8 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=['get'])
     def is_in_shopping_cart(self, request, pk=None):
         recipe = self.get_object()
-        is_in_shopping_cart = recipe.shopping_cart.filter(id=request.user.id).exists()
+        is_in_shopping_cart = recipe.shopping_cart.filter(
+            id=request.user.id).exists()
         return Response({'is_in_shopping_cart': int(is_in_shopping_cart)})
 
 
