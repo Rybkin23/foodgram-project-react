@@ -53,7 +53,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             1, message='Проверьте время приготовления.'),))
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
-    # print('tags1=', tags)
 
     class Meta:
         model = Recipe
@@ -71,6 +70,25 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 ingredient=ingredient.get('id'),
                 amount=ingredient.get('amount'))
         return recipe
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags', [])
+        ingredients = validated_data.pop('recipeingredient', [])        
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time', instance.cooking_time)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        RecipeIngredient.objects.filter(recipe=instance).delete()
+        for ingredient in ingredients:
+            RecipeIngredient.objects.create(
+                recipe=instance,
+                ingredient=ingredient.get('id'),
+                amount=ingredient.get('amount'))
+        instance.save()
+        return instance
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):

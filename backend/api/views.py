@@ -9,7 +9,7 @@ from rest_framework import (filters, mixins, permissions, status,
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeWriteSerializer, RecipeReadSerializer,
                              ShoppingListSerializer, FavoriteSerializer,
@@ -65,6 +65,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^ingredients__name',)
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
