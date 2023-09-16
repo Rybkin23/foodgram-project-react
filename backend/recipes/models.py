@@ -97,7 +97,7 @@ class RecipeTag(models.Model):
 class RecipeIngredient(models.Model):
     """Добавление количества для ингредиента"""
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='recipeingredient',
+        Ingredient, on_delete=models.CASCADE, related_name='recipeingredients',
         null=True, verbose_name='Ингредиент')
     amount = models.PositiveIntegerField(
         validators=[MinValueValidator(1)], verbose_name='Количество')
@@ -130,12 +130,12 @@ class ShoppingList(models.Model):
         return f'{self.user} - {self.recipe}'
 
 
-class Favourite(models.Model):
+class Favorite(models.Model):
     """Избранное"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='favourites')
+        User, on_delete=models.CASCADE, related_name='favorites')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='favourites')
+        Recipe, on_delete=models.CASCADE, related_name='favorites')
 
     class Meta:
         verbose_name_plural = 'Избранный рецепт'

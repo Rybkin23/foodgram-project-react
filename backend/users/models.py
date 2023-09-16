@@ -21,7 +21,7 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
         validators=[RegexValidator(
-            regex='^[\w.@+-]+\z',
+            regex='^[\w.@+-]+\Z',
             message='Введите допустимое значение',)])
 
     first_name = models.CharField(
@@ -39,3 +39,6 @@ class User(AbstractUser):
     class Meta:
         verbose_name_plural = 'Пользователи'
         verbose_name = 'Пользователь'
+
+    def __str__(self):
+        return self.username

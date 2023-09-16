@@ -13,5 +13,5 @@ RUN mkdir backend_static/
 RUN cp -r /app/collected_static/. /app/backend_static/
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram_backend.wsgi"]
-#RUN chmod +x run_app.sh
-#ENTRYPOINT [ "/app/run_app.sh" ]
+# RUN chmod +x run_app.sh
+# ENTRYPOINT [ "/app/run_app.sh" ]

@@ -1,7 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from users.models import User
 from recipes.models import (Tag, Ingredient, Recipe,
-                            ShoppingList, Favourite, Follow)
+                            ShoppingList, Favorite, Follow)
 from users.permissions import (IsAuthorOrReadOnly, AdminEditUsersPermission,
                                AdminOrReadOnly, IsAdminOwnerOrReadOnly)
 from rest_framework import (filters, mixins, permissions, status,
@@ -12,7 +12,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeWriteSerializer, RecipeReadSerializer,
-                             ShoppingListSerializer, FavouriteSerializer,
+                             ShoppingListSerializer, FavoriteSerializer,
                              FollowSerializer)
 from users.serializers import CustomUserSerializer
 
@@ -66,10 +66,10 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^ingredients__name',)
 
-    if action in ('list', 'retrieve'):
-        serializer_class = RecipeReadSerializer
-    else:
-        serializer_class = RecipeWriteSerializer
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
 
     @action(detail=True, methods=['get'])
     def is_favorited(self, request, pk=None):
@@ -80,7 +80,7 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=['get'])
     def is_in_shopping_cart(self, request, pk=None):
         recipe = self.get_object()
-        is_in_shopping_cart = recipe.shopping_cart.filter(
+        is_in_shopping_cart = recipe.shoplist.filter(
             id=request.user.id).exists()
         return Response({'is_in_shopping_cart': int(is_in_shopping_cart)})
 
@@ -91,10 +91,10 @@ class ShoppingListViewSet(ModelViewSet):
     serializer_class = ShoppingListSerializer
 
 
-class FavouriteViewSet(ModelViewSet):
-    queryset = Favourite.objects.all()
+class FavoriteViewSet(ModelViewSet):
+    queryset = Favorite.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = FavouriteSerializer
+    serializer_class = FavoriteSerializer
 
 
 class FollowViewSet(ModelViewSet):

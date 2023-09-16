@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .forms import RecipeInLineFormSet
 from .models import User
-from recipes.models import (Favourite, Follow, Ingredient, Recipe,
+from recipes.models import (Favorite, Follow, Ingredient, Recipe,
                             RecipeIngredient, Tag, ShoppingList, RecipeTag)
 
 
@@ -48,8 +48,8 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-@admin.register(Favourite, ShoppingList)
-class FavouriteAdmin(admin.ModelAdmin):
+@admin.register(Favorite, ShoppingList)
+class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     search_fields = ('user',)
 

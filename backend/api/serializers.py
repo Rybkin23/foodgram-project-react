@@ -2,13 +2,10 @@ from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from rest_framework import serializers
-from rest_framework.fields import IntegerField, SerializerMethodField
-from rest_framework.relations import SlugRelatedField
 
-from users.models import User
 from users.serializers import CustomUserSerializer
 from recipes.models import (Tag, Ingredient, RecipeIngredient,
-                            Recipe, ShoppingList, Favourite, Follow)
+                            Recipe, ShoppingList, Favorite, Follow)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -25,7 +22,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
+class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
@@ -35,9 +32,20 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
+class RecipeIngredientReadSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount', 'measurement_unit', 'name',)
+
+
 class RecipeWriteSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(
+    ingredients = RecipeIngredientWriteSerializer(
         many=True, source='recipeingredient')
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
@@ -45,6 +53,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             1, message='Проверьте время приготовления.'),))
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
+    # print('tags1=', tags)
 
     class Meta:
         model = Recipe
@@ -69,6 +78,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
     tags = TagSerializer(many=True)
+
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -77,8 +87,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_ingredients(self, obj):
-        ingredients = obj.recipes.all()
-        return RecipeIngredientSerializer(ingredients, many=True).data
+        ingredients = obj.recipeingredient.all()
+        return RecipeIngredientReadSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -101,9 +111,9 @@ class ShoppingListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FavouriteSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favourite
+        model = Favorite
         fields = '__all__'
 
 
