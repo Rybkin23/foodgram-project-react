@@ -7,6 +7,7 @@ from users.permissions import (IsAuthorOrReadOnly, AdminEditUsersPermission,
 from rest_framework import (filters, mixins, permissions, status,
                             viewsets)
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import LimitOffsetPagination
@@ -15,12 +16,7 @@ from api.serializers import (IngredientSerializer, TagSerializer,
                              ShoppingListSerializer, FavoriteSerializer,
                              FollowSerializer)
 from users.serializers import CustomUserSerializer
-
-
-class ListRetrieveViewSet(mixins.ListModelMixin,
-                          mixins.RetrieveModelMixin,
-                          viewsets.GenericViewSet):
-    pass
+from .filters import RecipeFilter, IngredientSearchFilter
 
 
 class UsersViewSet(ModelViewSet):
@@ -49,8 +45,9 @@ class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
+    pagination_class = None
 
 
 class TagViewSet(ModelViewSet):
@@ -63,8 +60,8 @@ class TagViewSet(ModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^ingredients__name',)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
     pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
@@ -72,18 +69,23 @@ class RecipeViewSet(ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(detail=True, methods=['get'])
-    def is_favorited(self, request, pk=None):
-        recipe = self.get_object()
-        is_favorited = recipe.favorite.filter(id=request.user.id).exists()
-        return Response({'is_favorited': int(is_favorited)})
+    @action(methods=['post'], detail=True,
+            permission_classes=[permissions.IsAuthenticated])
+    def favorite(self, request, pk):
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = FavoriteSerializer(data=data,
+                                        context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['get'])
-    def is_in_shopping_cart(self, request, pk=None):
-        recipe = self.get_object()
-        is_in_shopping_cart = recipe.shoplist.filter(
-            id=request.user.id).exists()
-        return Response({'is_in_shopping_cart': int(is_in_shopping_cart)})
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        favorite = get_object_or_404(Favorite, user=user, recipe=recipe)
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ShoppingListViewSet(ModelViewSet):
@@ -92,13 +94,8 @@ class ShoppingListViewSet(ModelViewSet):
     serializer_class = ShoppingListSerializer
 
 
-class FavoriteViewSet(ModelViewSet):
-    queryset = Favorite.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = FavoriteSerializer
-
-
 class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FollowSerializer
+    pagination_class = LimitOffsetPagination

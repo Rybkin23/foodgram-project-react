@@ -117,9 +117,9 @@ class RecipeIngredient(models.Model):
 class ShoppingList(models.Model):
     """Список покупок"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='shoplist')
+        User, on_delete=models.CASCADE, related_name='usershoplist')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='shoplist')
+        Recipe, on_delete=models.CASCADE, related_name='recipeshoplist')
 
     class Meta:
         verbose_name_plural = 'Список покупок'
@@ -133,9 +133,9 @@ class ShoppingList(models.Model):
 class Favorite(models.Model):
     """Избранное"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='favorites')
+        User, on_delete=models.CASCADE, related_name='userfavorites')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='favorites')
+        Recipe, on_delete=models.CASCADE, related_name='recipefavorites')
 
     class Meta:
         verbose_name_plural = 'Избранный рецепт'
