@@ -9,6 +9,7 @@ from rest_framework import (filters, mixins, permissions, status,
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import LimitOffsetPagination
 from api.serializers import (IngredientSerializer, TagSerializer,
@@ -88,10 +89,17 @@ class RecipeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ShoppingListViewSet(ModelViewSet):
-    queryset = ShoppingList.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = ShoppingListSerializer
+class ShoppingListAPIView(APIView):
+    def post(self, request, recipe_id):
+        recipe = Recipe.objects.get(id=recipe_id)
+        ShoppingList.objects.create(user=request.user, recipe=recipe)
+        serializer = ShoppingListSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        recipe = Recipe.objects.get(id=recipe_id)
+        ShoppingList.objects.filter(user=request.user, recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FollowViewSet(ModelViewSet):
