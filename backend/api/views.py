@@ -2,8 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from users.models import User
 from recipes.models import (Tag, Ingredient, Recipe,
                             ShoppingList, Favorite, Follow)
-from users.permissions import (IsAuthorOrReadOnly, AdminEditUsersPermission,
-                               AdminOrReadOnly, IsAdminOwnerOrReadOnly)
+from users.permissions import IsAuthorOrReadOnly
 from rest_framework import (filters, mixins, permissions, status,
                             viewsets)
 import logging
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 class UsersViewSet(ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = User.objects.order_by('pk')
-    permission_classes = (AdminEditUsersPermission,)
+    permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     @action(
@@ -50,7 +49,7 @@ class UsersViewSet(ModelViewSet):
 class IngredientViewSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
     pagination_class = None
@@ -59,7 +58,7 @@ class IngredientViewSet(ModelViewSet):
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = None
 
 
