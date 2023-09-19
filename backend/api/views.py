@@ -6,6 +6,7 @@ from users.permissions import (IsAuthorOrReadOnly, AdminEditUsersPermission,
                                AdminOrReadOnly, IsAdminOwnerOrReadOnly)
 from rest_framework import (filters, mixins, permissions, status,
                             viewsets)
+import logging
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -19,11 +20,15 @@ from api.serializers import (IngredientSerializer, TagSerializer,
 from users.serializers import CustomUserSerializer
 from .filters import RecipeFilter, IngredientSearchFilter
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 class UsersViewSet(ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = User.objects.order_by('pk')
     permission_classes = (AdminEditUsersPermission,)
+    pagination_class = LimitOffsetPagination
 
     @action(
         methods=('GET', 'PATCH'), detail=False, url_path='me',
@@ -102,8 +107,34 @@ class ShoppingListAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FollowViewSet(ModelViewSet):
-    queryset = Follow.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+class FollowViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FollowSerializer
+    permission_classes = (permissions.IsAuthenticated, )
     pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = User.objects.filter(following__user=user)
+        # logger.info('Queryset: %s', queryset)
+        return queryset
+
+
+class FollowCreateDestroyAPIView(APIView):
+    serializer_class = FollowSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+    pagination_class = LimitOffsetPagination
+
+    def post(self, request, *args, **kwargs):
+        author = get_object_or_404(User, id=self.kwargs.get('user_id'))
+        user = request.user
+        Follow.objects.create(user=user, author=author)
+        return Response(self.serializer_class(
+            author, context={'request': request}).data,
+            status=status.HTTP_201_CREATED)
+
+    def delete(self, request, *args, **kwargs):
+        author = get_object_or_404(User, id=self.kwargs.get('user_id'))
+        follow = author.following.filter(user=request.user)
+        if follow.exists():
+            follow.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
