@@ -131,11 +131,14 @@ class RecipeReadSerializer(RecipeBaseSerializer):
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    recipe = RecipeWriteSerializer(read_only=True)
-
     class Meta:
         model = ShoppingList
         fields = '__all__'
+
+    def to_representation(self, recipe):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeBaseSerializer(recipe, context=context).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

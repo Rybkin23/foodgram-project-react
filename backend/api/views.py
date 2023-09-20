@@ -11,7 +11,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.pagination import LimitOffsetPagination
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeWriteSerializer, RecipeReadSerializer,
                              ShoppingListSerializer, FavoriteSerializer,
@@ -27,7 +26,6 @@ class UsersViewSet(ModelViewSet):
     serializer_class = CustomUserSerializer
     queryset = User.objects.order_by('pk')
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitOffsetPagination
 
     @action(
         methods=('GET', 'PATCH'), detail=False, url_path='me',
@@ -67,7 +65,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = LimitOffsetPagination
+
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -109,7 +107,6 @@ class ShoppingListAPIView(APIView):
 class FollowViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated, )
-    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -121,7 +118,6 @@ class FollowViewSet(viewsets.ReadOnlyModelViewSet):
 class FollowCreateDestroyAPIView(APIView):
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated, )
-    pagination_class = LimitOffsetPagination
 
     def post(self, request, *args, **kwargs):
         author = get_object_or_404(User, id=self.kwargs.get('user_id'))

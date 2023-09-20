@@ -14,7 +14,7 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, data):
-        user = self.context['request'].user
+        user = self.context['request'].user.id
         return data.following.filter(user=user).exists()
 
 
