@@ -1,6 +1,9 @@
+from django.db.models import Sum
+from django.core.files.base import ContentFile
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from users.models import User
-from recipes.models import (Tag, Ingredient, Recipe,
+from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
                             ShoppingList, Favorite, Follow)
 from users.permissions import IsAuthorOrReadOnly
 from rest_framework import (filters, mixins, permissions, status,
@@ -14,7 +17,7 @@ from rest_framework.viewsets import ModelViewSet
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeWriteSerializer, RecipeReadSerializer,
                              ShoppingListSerializer, FavoriteSerializer,
-                             FollowSerializer)
+                             FollowSerializer, RecipeIngredientReadSerializer)
 from users.serializers import CustomUserSerializer
 from .filters import RecipeFilter, IngredientSearchFilter
 
@@ -66,7 +69,6 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
             return RecipeReadSerializer
@@ -93,14 +95,17 @@ class RecipeViewSet(ModelViewSet):
 
 class ShoppingListAPIView(APIView):
     def post(self, request, recipe_id):
-        recipe = Recipe.objects.get(id=recipe_id)
-        ShoppingList.objects.create(user=request.user, recipe=recipe)
-        serializer = ShoppingListSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        if not ShoppingList.objects.filter(user=request.user, recipe=recipe).exists():
+            ShoppingList.objects.create(user=request.user, recipe=recipe)
+            serializer = ShoppingListSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        recipe = Recipe.objects.get(id=recipe_id)
-        ShoppingList.objects.filter(user=request.user, recipe=recipe).delete()
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        shopping_list_item = get_object_or_404(ShoppingList, user=request.user, recipe=recipe)
+        shopping_list_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -122,14 +127,34 @@ class FollowCreateDestroyAPIView(APIView):
     def post(self, request, *args, **kwargs):
         author = get_object_or_404(User, id=self.kwargs.get('user_id'))
         user = request.user
-        Follow.objects.create(user=user, author=author)
-        return Response(self.serializer_class(
-            author, context={'request': request}).data,
-            status=status.HTTP_201_CREATED)
+        if not Follow.objects.filter(user=user, author=author).exists():
+            Follow.objects.create(user=user, author=author)
+            return Response(self.serializer_class(
+                author, context={'request': request}).data,
+                status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         author = get_object_or_404(User, id=self.kwargs.get('user_id'))
-        follow = author.following.filter(user=request.user)
-        if follow.exists():
-            follow.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        follow = get_object_or_404(Follow, user=request.user, author=author)
+        follow.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LoadShopListAPIView(APIView):
+    serializer_class = RecipeIngredientReadSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__recipeshoplist__user=request.user).values_list(
+                'ingredient__name', 'ingredient__measurement_unit').annotate(
+                    amount=Sum('amount'))
+        shop_list = '\n'.join([
+            f'{ingredient[0]} - {ingredient[2]} {ingredient[1]}'
+            for ingredient in ingredients])
+        filename = 'shop_list.txt'
+        content_file = ContentFile(shop_list)
+        response = HttpResponse(content_file, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
