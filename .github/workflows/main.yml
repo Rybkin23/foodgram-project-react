@@ -41,8 +41,8 @@ jobs:
       run: |
         python -m flake8 backend/
 
-  build_and_push_to_docker_hub:
-    name: Push Docker image to DockerHub
+  build_backend_and_push_to_docker_hub:
+    name: Push backend Docker image to DockerHub
     runs-on: ubuntu-latest
     needs: tests
     steps:
@@ -85,7 +85,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: 
-      - build_and_push_to_docker_hub
+      - build_backend_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
     steps:
     - name: Checkout repo
@@ -97,7 +97,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        source: "docker-compose.production.yml"
+        source: "infra/docker-compose.production.yml"
         target: "foodgram"
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
