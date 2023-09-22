@@ -36,7 +36,6 @@ services:
     volumes:
       - static_dir:/app/backend_static/
       - media_dir:/media/
-      - ../backend:/app/backend
     env_file:
       - ../.env
     ports:
