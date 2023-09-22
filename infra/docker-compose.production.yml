@@ -9,7 +9,7 @@ services:
       - static:/static/
 
   nginx:
-    image: rybkin23/foodgram_nginx
+    image: nginx:1.23.3-alpine
     restart: always
     ports:
       - "80:80"
