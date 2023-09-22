@@ -3,16 +3,49 @@ name: foodgram_prod
 services:
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: rybkin23/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
+      - static:/static/
+
   nginx:
-    image: nginx:1.19.3
+    image: nginx:1.23.3-alpine image: rybkin23/foodgram_nginx
+    restart: always
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - static_dir:/var/html/backend_static/
+      - media_dir:/var/html/media/
+    depends_on:
+      - backend
+      - frontend
+
+  db:
+    image: postgres:13.0-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file: ../.env
+
+  backend:
+    image: rybkin23/foodgram_backend
+    restart: always
+    volumes:
+      - static_dir:/app/backend_static/
+      - media_dir:/media/
+      - ../backend:/app/backend
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  static_dir:
+  static:
+  media_dir:
+  postgres_data:
