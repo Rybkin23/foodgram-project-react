@@ -2,8 +2,9 @@ from django.contrib import admin
 
 from .forms import RecipeInLineFormSet
 from .models import User
-from recipes.models import (Favorite, Follow, Ingredient, Recipe,
-                            RecipeIngredient, Tag, ShoppingList, RecipeTag)
+from recipes.models import (
+    Favorite, Follow, Ingredient, Recipe, RecipeIngredient,
+    RecipeTag, ShoppingList, Tag)
 
 
 @admin.register(User)
@@ -33,7 +34,8 @@ class RecipeTagInLine(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'get_favorite_count', 'admin_tag', 'author', 'cooking_time')
+    list_display = ('name', 'get_favorite_count', 'admin_tag',
+                    'author', 'cooking_time')
     list_filter = ('tags', 'author', 'name')
     search_fields = ('tags__name', 'author__username', 'name')
     inlines = (RecipeIngredientInLine, RecipeTagInLine)

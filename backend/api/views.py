@@ -1,25 +1,27 @@
-from django.db.models import Sum
+import logging
+
 from django.core.files.base import ContentFile
+from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from users.models import User
-from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingList, Favorite, Follow)
-from users.permissions import IsAuthorOrReadOnly
-from rest_framework import (filters, mixins, permissions, status,
-                            viewsets)
-import logging
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from api.serializers import (IngredientSerializer, TagSerializer,
-                             RecipeWriteSerializer, RecipeReadSerializer,
-                             ShoppingListSerializer, FavoriteSerializer,
-                             FollowSerializer, RecipeIngredientReadSerializer)
+
+from api.serializers import (
+    FavoriteSerializer, FollowSerializer, IngredientSerializer,
+    RecipeIngredientReadSerializer, RecipeReadSerializer,
+    RecipeWriteSerializer, ShoppingListSerializer, TagSerializer)
+from recipes.models import (
+    Favorite, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingList, Tag)
+from users.models import User
+from users.permissions import IsAuthorOrReadOnly
 from users.serializers import CustomUserSerializer
-from .filters import RecipeFilter, IngredientSearchFilter
+from .filters import IngredientSearchFilter, RecipeFilter
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -96,7 +98,8 @@ class RecipeViewSet(ModelViewSet):
 class ShoppingListAPIView(APIView):
     def post(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        if not ShoppingList.objects.filter(user=request.user, recipe=recipe).exists():
+        if (not ShoppingList.objects.filter(
+                user=request.user, recipe=recipe).exists()):
             ShoppingList.objects.create(user=request.user, recipe=recipe)
             serializer = ShoppingListSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -104,7 +107,8 @@ class ShoppingListAPIView(APIView):
 
     def delete(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        shopping_list_item = get_object_or_404(ShoppingList, user=request.user, recipe=recipe)
+        shopping_list_item = get_object_or_404(
+            ShoppingList, user=request.user, recipe=recipe)
         shopping_list_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -115,9 +119,7 @@ class FollowViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = User.objects.filter(following__user=user)
-        # logger.info('Queryset: %s', queryset)
-        return queryset
+        return User.objects.filter(following__user=user)
 
 
 class FollowCreateDestroyAPIView(APIView):

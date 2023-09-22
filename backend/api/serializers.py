@@ -1,12 +1,11 @@
-from drf_extra_fields.fields import Base64ImageField
-from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from rest_framework.response import Response
-from users.serializers import CustomUserSerializer
+
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingList, Tag)
 from users.models import User
-from recipes.models import (Tag, Ingredient, RecipeIngredient,
-                            Recipe, ShoppingList, Favorite)
+from users.serializers import CustomUserSerializer
 
 
 class RecipeBaseSerializer(serializers.ModelSerializer):
@@ -79,7 +78,7 @@ class RecipeWriteSerializer(RecipeBaseSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', [])
-        ingredients = validated_data.pop('recipeingredient', [])        
+        ingredients = validated_data.pop('recipeingredient', [])
         instance.name = validated_data.get('name', instance.name)
         instance.image = validated_data.get('image', instance.image)
         instance.text = validated_data.get('text', instance.text)
@@ -153,7 +152,8 @@ class FollowSerializer(CustomUserSerializer):
 
     class Meta:
         model = User
-        fields = CustomUserSerializer.Meta.fields + ('recipes', 'recipes_count')
+        fields = CustomUserSerializer.Meta.fields + (
+            'recipes', 'recipes_count')
         read_only_fields = ('__all__',)
 
     def get_recipes_count(self, data):

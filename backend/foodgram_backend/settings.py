@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-#from datetime import timedelta
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -143,4 +143,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
-CORS_ORIGIN_WHITELIST = ['http://localhost:8000',]
+CORS_ORIGIN_WHITELIST = ['http://localhost:8000', ]
