@@ -28,7 +28,7 @@ services:
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    env_file: ../.env
+    env_file: .env
 
   backend:
     image: rybkin23/foodgram_backend
@@ -37,7 +37,7 @@ services:
       - static_dir:/app/backend_static/
       - media_dir:/media/
     env_file:
-      - ../.env
+      - .env
     ports:
       - "8000:8000"
     depends_on:
