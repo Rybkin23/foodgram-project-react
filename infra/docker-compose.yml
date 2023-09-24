@@ -12,6 +12,7 @@ services:
     image: nginx:1.23.3-alpine
     restart: always
     ports:
+      # - 80:80
       - 8000:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
@@ -38,8 +39,8 @@ services:
       - media_dir:/media/
     env_file:
       - .env
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
     depends_on:
       - db
 
