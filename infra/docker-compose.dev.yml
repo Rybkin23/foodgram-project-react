@@ -1,9 +1,11 @@
 version: '3.8'
-name: foodgram_prod
+name: foodgram
 services:
 
   frontend:
-    image: rybkin23/foodgram_frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
       - static:/static/
@@ -28,16 +30,20 @@ services:
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    env_file: .env
+    env_file: ../.env
 
   backend:
-    image: rybkin23/foodgram_backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_dir:/app/backend_static/
       - media_dir:/media/
+      - ../backend:/app/backend
+    # command: gunicorn -b 0:8000 foodgram_backend.wsgi
     env_file:
-      - .env
+      - ../.env
     ports:
       - "8000:8000"
     depends_on:
