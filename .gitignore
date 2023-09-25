@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Файлы
+media_dir_backup.tar
+postgres_data_backup.tar
+
 # Distribution / packaging
 .Python
 build/
