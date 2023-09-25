@@ -5,7 +5,7 @@ RUN apt-get update &&\
 WORKDIR /app
 COPY ../ ./
 RUN python -m pip install --upgrade pip
-RUN pip install --root-user-action=ignore
+# RUN pip install --root-user-action=ignore
 RUN pip install -r requirements.txt --no-cache-dir
 RUN apt-get update && apt -y install mc
 RUN python manage.py collectstatic --no-input
