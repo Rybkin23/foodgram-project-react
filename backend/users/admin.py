@@ -50,7 +50,6 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
-    inlines = (RecipeTagInLine,)
     list_per_page = 10
 
 
