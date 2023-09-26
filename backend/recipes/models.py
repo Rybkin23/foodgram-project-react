@@ -155,7 +155,7 @@ class Follow(models.Model):
                                related_name='following', verbose_name='Автор')
 
     class Meta:
-        unique_together = ('user', 'author')  # Нельзя подписаться дважды
+        unique_together = ('user', 'author')
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
 
