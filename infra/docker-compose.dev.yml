@@ -41,7 +41,6 @@ services:
       - static_dir:/app/backend_static/
       - media_dir:/media/
       - ../backend:/app/backend
-    # command: gunicorn -b 0:8000 foodgram_backend.wsgi
     env_file:
       - ../.env
     ports:

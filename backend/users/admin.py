@@ -42,7 +42,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_per_page = 10
 
     def get_favorite_count(self, obj):
-        return obj.recipefavorites.count()
+        return obj.in_favorites.count()
 
     get_favorite_count.short_description = 'Добавлено в избранное'
 

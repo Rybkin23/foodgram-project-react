@@ -118,8 +118,7 @@ class FollowViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
 
     def get_queryset(self):
-        user = self.request.user
-        return User.objects.filter(following__user=user)
+        return User.objects.filter(following__user=self.request.user)
 
 
 class FollowCreateDestroyAPIView(APIView):
@@ -149,9 +148,9 @@ class LoadShopListAPIView(APIView):
 
     def get(self, request):
         ingredients = RecipeIngredient.objects.filter(
-            recipe__recipeshoplist__user=request.user).values_list(
+            recipe__in_shoppinglists__user=request.user).values_list(
                 'ingredient__name', 'ingredient__measurement_unit').annotate(
-                    amount=Sum('amount'))
+                    total_amount=Sum('amount'))
         shop_list = '\n'.join([
             f'{ingredient[0]} - {ingredient[2]} {ingredient[1]}'
             for ingredient in ingredients])

@@ -1,4 +1,6 @@
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import (
+    MaxValueValidator, MinValueValidator, RegexValidator)
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from users.models import User
@@ -62,16 +64,17 @@ class Recipe(models.Model):
         null=True,
         blank=False, verbose_name='Изображение')
     text = models.TextField(verbose_name='Описание рецепта', null=True)
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, м', default=0,
-        validators=[MinValueValidator(1)])
+        validators=[MinValueValidator(1), MaxValueValidator(2880)])
     tags = models.ManyToManyField(
         Tag, related_name='recipes', through='RecipeTag', verbose_name='Тэги')
     ingredients = models.ManyToManyField(
         Ingredient, related_name='recipes', through='RecipeIngredient')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ('-created_at',)
         verbose_name_plural = 'Рецепт'
         verbose_name = 'Рецепты'
 
@@ -114,41 +117,34 @@ class RecipeIngredient(models.Model):
         return f'{str(self.ingredient)} in {str(self.recipe)}-{self.amount}'
 
 
-class ShoppingList(models.Model):
-    """Список покупок"""
+class UserRecipe(models.Model):
+    """Связь пользователя с рецептом"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='usershoplist',
-        verbose_name='Покупатель')
+        User, on_delete=models.CASCADE, verbose_name='Пользователь')
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipeshoplist',
+        Recipe, on_delete=models.CASCADE, related_name='in_%(class)ss',
         verbose_name='Название рецепта')
 
     class Meta:
-        ordering = ('-recipe_id',)
+        abstract = True
+        unique_together = ('user', 'recipe')
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'
+
+
+class ShoppingList(UserRecipe):
+    """Список покупок"""
+    class Meta(UserRecipe.Meta):
         verbose_name_plural = 'Список покупок'
         verbose_name = 'Списки покупок'
-        unique_together = ('user', 'recipe')
-
-    def __str__(self):
-        return f'{self.user} - {self.recipe}'
 
 
-class Favorite(models.Model):
+class Favorite(UserRecipe):
     """Избранное"""
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='userfavorites',
-        verbose_name='Добавивший пользователь',)
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipefavorites',
-        verbose_name='Название рецепта',)
-
-    class Meta:
+    class Meta(UserRecipe.Meta):
         verbose_name_plural = 'Избранный рецепт'
         verbose_name = 'Избранные рецепты'
-        unique_together = ('user', 'recipe')
-
-    def __str__(self):
-        return f'{self.user} - {self.recipe}'
 
 
 class Follow(models.Model):
@@ -159,6 +155,14 @@ class Follow(models.Model):
                                related_name='following', verbose_name='Автор')
 
     class Meta:
-        unique_together = ('user', 'author')
+        unique_together = ('user', 'author')  # Нельзя подписаться дважды
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+
+    def clean(self):
+        if self.user == self.author:
+            raise ValidationError('Нельзя подписаться на себя')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        return super().save(*args, **kwargs)
