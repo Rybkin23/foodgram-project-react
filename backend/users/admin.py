@@ -1,4 +1,6 @@
 from django.contrib import admin
+from import_export.admin import ImportExportActionModelAdmin
+
 
 from .forms import RecipeInLineFormSet
 from .models import User
@@ -33,7 +35,7 @@ class RecipeTagInLine(admin.TabularInline):
 
 
 @admin.register(Recipe)
-class RecipeAdmin(admin.ModelAdmin):
+class RecipeAdmin(ImportExportActionModelAdmin):
     list_display = ('name', 'get_favorite_count', 'admin_tag',
                     'author', 'cooking_time')
     list_filter = ('tags', 'author', 'name')
@@ -42,19 +44,19 @@ class RecipeAdmin(admin.ModelAdmin):
     list_per_page = 10
 
     def get_favorite_count(self, obj):
-        return obj.recipefavorites.count()
+        return obj.in_favorites.count()
 
     get_favorite_count.short_description = 'Добавлено в избранное'
 
 
 @admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
+class TagAdmin(ImportExportActionModelAdmin):
     list_display = ('name', 'color', 'slug')
     list_per_page = 10
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientAdmin(ImportExportActionModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
     list_per_page = 10

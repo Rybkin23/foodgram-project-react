@@ -16,17 +16,3 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, data):
         user = self.context['request'].user.id
         return data.following.filter(user=user).exists()
-
-
-class CustomUserCreateSerializer(UserCreateSerializer):
-
-    password = models.CharField(
-        verbose_name='Пароль',
-        help_text='Введите пароль',
-        max_length=150,
-        blank=False)
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username',
-                  'first_name', 'last_name', 'password',)
