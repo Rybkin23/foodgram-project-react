@@ -1,5 +1,4 @@
-from django.db import models
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
 from .models import User
