@@ -10,7 +10,7 @@ from recipes.models import (
 
 
 @admin.register(User)
-class UsersAdmin(admin.ModelAdmin):
+class UsersAdmin(ImportExportActionModelAdmin):
     list_display = ('id', 'first_name', 'email')
     list_filter = ('first_name', 'email')
     search_fields = list_filter
