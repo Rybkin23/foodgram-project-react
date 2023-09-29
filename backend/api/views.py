@@ -13,7 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from api.serializers import (
     FavoriteSerializer, FollowSerializer, IngredientSerializer,
-    RecipeIngredientReadSerializer, RecipeReadSerializer,
+    RecipeBaseSerializer, RecipeIngredientReadSerializer, RecipeReadSerializer,
     RecipeWriteSerializer, ShoppingListSerializer, TagSerializer)
 from recipes.models import (
     Favorite, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingList, Tag)
@@ -67,7 +67,7 @@ class TagViewSet(ModelViewSet):
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -76,41 +76,56 @@ class RecipeViewSet(ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(methods=['post'], detail=True,
+    @action(methods=['post', 'delete'], detail=True,
             permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk):
-        data = {'user': request.user.id, 'recipe': pk}
-        serializer = FavoriteSerializer(data=data,
-                                        context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'POST':
+            return ChangeAPIView().post(
+                request, pk, Favorite, FavoriteSerializer)
+        elif request.method == 'DELETE':
+            return ChangeAPIView().delete(
+                request, pk, Favorite)
 
-    @favorite.mapping.delete
-    def delete_favorite(self, request, pk):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        favorite = get_object_or_404(Favorite, user=user, recipe=recipe)
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    @action(methods=['post', 'delete'], detail=True,
+            permission_classes=[permissions.IsAuthenticated])
+    def shopping_list(self, request, pk):
+        if request.method == 'POST':
+            return ChangeAPIView().post(
+                request, pk, ShoppingList, ShoppingListSerializer)
+        elif request.method == 'DELETE':
+            return ChangeAPIView().delete(
+                request, pk, ShoppingList)
 
 
-class ShoppingListAPIView(APIView):
+class ChangeAPIView(APIView):
+    model = None
+    serializer_class = None
+
     def post(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        if (not ShoppingList.objects.filter(
+        if (not self.model.objects.filter(
                 user=request.user, recipe=recipe).exists()):
-            ShoppingList.objects.create(user=request.user, recipe=recipe)
-            serializer = ShoppingListSerializer(recipe)
+            self.model.objects.create(user=request.user, recipe=recipe)
+            serializer = RecipeBaseSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        shopping_list_item = get_object_or_404(
-            ShoppingList, user=request.user, recipe=recipe)
-        shopping_list_item.delete()
+        list_item = get_object_or_404(
+            self.model, user=request.user, recipe=recipe)
+        list_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FavoriteChangeAPIView(ChangeAPIView):
+    model = Favorite
+    serializer_class = FavoriteSerializer
+
+
+class ShoppingListChangeAPIView(ChangeAPIView):
+    model = ShoppingList
+    serializer_class = ShoppingListSerializer
 
 
 class FollowViewSet(viewsets.ReadOnlyModelViewSet):
