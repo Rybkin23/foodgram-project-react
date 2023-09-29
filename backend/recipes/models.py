@@ -9,10 +9,10 @@ from users.models import User
 class Tag(models.Model):
     """Теги"""
     name = models.CharField(
-        verbose_name='Тэги', max_length=200, null=True, blank=False,
+        verbose_name='Тэги', max_length=200, blank=False,
         unique=True)
     color = models.CharField(
-        max_length=7, default="#ffffff", null=True,
+        max_length=7, default="#ffffff",
         blank=True, unique=True, verbose_name='Цвет')
     slug = models.SlugField(
         max_length=200, null=True, blank=True,
@@ -57,13 +57,11 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name='Название рецепта',
         max_length=200,
-        null=True,
         blank=False)
     image = models.ImageField(
         upload_to='media/',
-        null=True,
         blank=False, verbose_name='Изображение')
-    text = models.TextField(verbose_name='Описание рецепта', null=True)
+    text = models.TextField(verbose_name='Описание рецепта')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, м', default=0,
         validators=[MinValueValidator(1), MaxValueValidator(2880)])
@@ -101,12 +99,12 @@ class RecipeIngredient(models.Model):
     """Добавление количества для ингредиента"""
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='recipeingredients',
-        null=True, verbose_name='Ингредиент')
+        verbose_name='Ингредиент')
     amount = models.PositiveIntegerField(
         validators=[MinValueValidator(1)], verbose_name='Количество')
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
-        related_name='recipeingredient', null=True)
+        related_name='recipeingredient')
 
     class Meta:
         unique_together = ('ingredient', 'recipe')
