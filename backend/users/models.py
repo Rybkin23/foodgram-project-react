@@ -23,7 +23,6 @@ class User(AbstractUser):
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+\Z',
             message='Введите допустимое значение',)])
-
     first_name = models.CharField(
         verbose_name='Имя',
         help_text='Введите имя',
