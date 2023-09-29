@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from import_export.formats.base_formats import CSV
+from import_export.formats.base_formats import CSV, XLS, JSON, YAML, HTML
 
 load_dotenv()
 
@@ -103,7 +103,7 @@ USE_L10N = True
 USE_TZ = True
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
-IMPORT_EXPORT_FORMATS = [CSV]
+IMPORT_EXPORT_FORMATS = [CSV, XLS, JSON, YAML, HTML]
 STATIC_URL = '/backend_static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
