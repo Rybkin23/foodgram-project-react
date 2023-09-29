@@ -48,20 +48,6 @@ class RecipeAdmin(ImportExportActionModelAdmin):
 
     get_favorite_count.short_description = 'Добавлено в избранное'
 
-    def before_import_row(self, row, **kwargs):
-        recipe_amount = row.get('amount')
-        if recipe_amount:
-            self.amount = recipe_amount
-
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        recipe_ingredient = instance.recipeingredient_set.first()
-        if recipe_ingredient:
-            recipe_ingredient.amount = instance.amount
-            recipe_ingredient.save()
-
-    def after_import(self, dataset, result, **kwargs):
-        Recipe.objects.update(amount=None)
-
 
 @admin.register(Tag)
 class TagAdmin(ImportExportActionModelAdmin):
