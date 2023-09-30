@@ -80,24 +80,24 @@ class RecipeViewSet(ModelViewSet):
             permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk):
         if request.method == 'POST':
-            return ChangeAPIView().post(
+            return AbstractAPIView().post(
                 request, pk, Favorite, FavoriteSerializer)
         elif request.method == 'DELETE':
-            return ChangeAPIView().delete(
+            return AbstractAPIView().delete(
                 request, pk, Favorite)
 
     @action(methods=['post', 'delete'], detail=True,
             permission_classes=[permissions.IsAuthenticated])
     def shopping_list(self, request, pk):
         if request.method == 'POST':
-            return ChangeAPIView().post(
+            return AbstractAPIView().post(
                 request, pk, ShoppingList, ShoppingListSerializer)
         elif request.method == 'DELETE':
-            return ChangeAPIView().delete(
+            return AbstractAPIView().delete(
                 request, pk, ShoppingList)
 
 
-class ChangeAPIView(APIView):
+class AbstractAPIView(APIView):
     model = None
     serializer_class = None
 
@@ -118,12 +118,12 @@ class ChangeAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FavoriteChangeAPIView(ChangeAPIView):
+class FavoriteAPIView(AbstractAPIView):
     model = Favorite
     serializer_class = FavoriteSerializer
 
 
-class ShoppingListChangeAPIView(ChangeAPIView):
+class ShoppingListAPIView(AbstractAPIView):
     model = ShoppingList
     serializer_class = ShoppingListSerializer
 
