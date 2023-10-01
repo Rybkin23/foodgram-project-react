@@ -147,7 +147,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(CustomUserSerializer):
-    recipes = RecipeBaseSerializer(many=True, read_only=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -155,6 +155,12 @@ class FollowSerializer(CustomUserSerializer):
         fields = CustomUserSerializer.Meta.fields + (
             'recipes', 'recipes_count')
         read_only_fields = ('__all__',)
+
+    def get_recipes(self, obj):
+        limit = int(
+            self.context.get('request').query_params.get('recipes_limit'))
+        recipes = Recipe.objects.filter(author=obj)[:limit]
+        return RecipeBaseSerializer(recipes, many=True).data
 
     def get_recipes_count(self, data):
         return data.recipes.count()
