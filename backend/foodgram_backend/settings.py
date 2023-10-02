@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', default='default')
 
 DEBUG = os.getenv('DEBUG', default='True')
-
+print('DEBUG=', DEBUG)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='[]').split(',')
 
 INSTALLED_APPS = [
@@ -120,6 +120,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPageNumberPagination',
+    'PAGE_SIZE': 6,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
