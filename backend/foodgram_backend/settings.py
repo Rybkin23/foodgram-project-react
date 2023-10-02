@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', default='default')
 
 DEBUG = os.getenv('DEBUG', default='True')
-print('DEBUG=', DEBUG)
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='[]').split(',')
 
 INSTALLED_APPS = [
